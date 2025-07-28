@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Katalog Produk</title>
+    <script src="https://unpkg.com/tabletop@1.6.0/tabletop.js"></script>
+  </head>
+  <body>
+    <h1>Katalog Produk</h1>
+    <div id="katalog"></div>
+
+    <script>
+      function showData(data) {
+        let html = "";
+        data.forEach((item) => {
+          html += `
+          <div style="border:1px solid #ccc;padding:10px;margin:10px;">
+            <img src="${item.Gambar}" width="100"><br>
+            <strong>${item.Nama}</strong><br>
+            Harga: ${item.Harga}<br>
+            Ukuran: ${item.Size}
+          </div>
+        `;
+        });
+        document.getElementById("katalog").innerHTML = html;
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        Tabletop.init({
+          key: "https://docs.google.com/spreadsheets/d/1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y/edit?usp=sharing",
+          simpleSheet: true,
+          callback: showData,
+        });
+      });
+    </script>
+  </body>
+</html>
