@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Katalog Produk</title>
-  <script src="https://unpkg.com/tabletop@1.5.1/tabletop.js"></script>
   <style>
     body { font-family: sans-serif; background: #f8f8f8; padding: 20px; }
     .produk { border: 1px solid #ccc; background: #fff; border-radius: 8px; padding: 15px; margin: 10px; width: 220px; display: inline-block; vertical-align: top; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
@@ -14,32 +13,44 @@
 </head>
 <body>
   <h1>Katalog Produk</h1>
-  <div id="katalog"></div>
+  <div id="katalog">Loading...</div>
 
   <script>
-    function showData(data) {
-      let html = '';
-      data.forEach(item => {
-        html += `
-          <div class="produk">
-            ${item.Gambar ? `<img src="${item.Gambar}" alt="${item.Nama}">` : ''}
-            <h3>${item.Nama}</h3>
-            <p>Size: ${item.Size}</p>
-            <p>Harga: ${item.Harga}</p>
-          </div>
-        `;
-      });
-      console.log(data);
-      document.getElementById('katalog').innerHTML = html;
-    }
+    const API_KEY = 'AIzaSyARK_4viVwWztQS4pmi7_CKOk6Poszd3eg';
+    const SPREADSHEET_ID = '1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y';
+    const SHEET_NAME = 'Nama Barang';
 
-    window.addEventListener('DOMContentLoaded', () => {
-      Tabletop.init({
-        key: '1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y', // Ganti dengan ID Spreadsheet kamu
-        simpleSheet: true,
-        callback: showData
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const rows = data.values;
+        const headers = rows[0];
+        const items = rows.slice(1).map(row => {
+          let item = {};
+          headers.forEach((key, i) => item[key] = row[i] || '');
+          return item;
+        });
+
+        let html = '';
+        items.forEach(item => {
+          html += `
+            <div class="produk">
+              ${item.Gambar ? `<img src="${item.Gambar}" alt="${item.Nama}">` : ''}
+              <h3>${item.Nama}</h3>
+              <p>Size: ${item.Size}</p>
+              <p>Harga: ${item.Harga}</p>
+            </div>
+          `;
+        });
+
+        document.getElementById('katalog').innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('katalog').innerHTML = 'Gagal memuat data.';
       });
-    });
   </script>
 </body>
 </html>
