@@ -54,10 +54,10 @@
     const SHEET_NAME = 'Nama Barang';
     const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
-    // Ubah link Google Drive ke direct image link
-    function convertDriveUrl(viewUrl) {
+    // Ambil ID file dari link Google Drive
+    function getFileIdFromDriveUrl(viewUrl) {
       const match = viewUrl.match(/\/d\/([a-zA-Z0-9_-]+)\//);
-      return match ? `https://drive.google.com/uc?id=${match[1]}` : '';
+      return match ? match[1] : null;
     }
 
     fetch(SHEET_URL)
@@ -75,10 +75,12 @@
         container.innerHTML = '';
 
         items.forEach(item => {
-          const imgSrc = convertDriveUrl(item.Gambar);
+          const fileId = getFileIdFromDriveUrl(item.Gambar);
+          const imgSrc = fileId ? `https://drive.google.com/uc?id=${fileId}` : 'https://via.placeholder.com/200x200?text=No+Image';
+
           const card = `
             <div class="produk">
-              ${imgSrc ? `<img src="${imgSrc}" alt="${item.Nama}">` : ''}
+              <img src="${imgSrc}" alt="${item.Nama}">
               <h3>${item.Nama}</h3>
               <p>Ukuran: ${item.Size}</p>
               <p>Harga: ${item.Harga}</p>
