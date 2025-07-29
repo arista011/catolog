@@ -22,6 +22,12 @@
 
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
+    // Konversi Google Drive viewer ke direct image
+    function convertDriveUrl(viewUrl) {
+      const match = viewUrl.match(/\/d\/([^/]+)\//);
+      return match ? `https://drive.google.com/uc?id=${match[1]}` : viewUrl;
+    }
+
     fetch(url)
       .then(response => response.json())
       .then(data => {
@@ -37,7 +43,7 @@
         items.forEach(item => {
           html += `
             <div class="produk">
-              ${item.Gambar ? `<img src="${item.Gambar}" alt="${item.Nama}">` : ''}
+              ${item.Gambar ? `<img src="${convertDriveUrl(item.Gambar)}" alt="${item.Nama}">` : ''}
               <h3>${item.Nama}</h3>
               <p>Size: ${item.Size}</p>
               <p>Harga: ${item.Harga}</p>
