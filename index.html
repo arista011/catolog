@@ -1,34 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Katalog Produk</title>
   <style>
-    body { font-family: sans-serif; background: #f8f8f8; padding: 20px; }
-    .produk { border: 1px solid #ccc; background: #fff; border-radius: 8px; padding: 15px; margin: 10px; width: 220px; display: inline-block; vertical-align: top; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-    .produk img { max-width: 100%; height: auto; border-radius: 5px; }
-    .produk h3 { margin: 5px 0; font-size: 18px; }
-    .produk p { margin: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .produk {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 220px;
+      padding: 15px;
+      text-align: center;
+    }
+    .produk img {
+      width: 100%;
+      height: auto;
+      border-radius: 5px;
+    }
+    .produk h3 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+      color: #222;
+    }
+    .produk p {
+      margin: 3px 0;
+      color: #555;
+    }
   </style>
 </head>
 <body>
   <h1>Katalog Produk</h1>
-  <div id="katalog">Loading...</div>
+  <div class="container" id="katalog">Memuat data...</div>
 
   <script>
     const API_KEY = 'AIzaSyARK_4viVwWztQS4pmi7_CKOk6Poszd3eg';
     const SPREADSHEET_ID = '1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y';
     const SHEET_NAME = 'Nama Barang';
+    const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
-
-    // Konversi Google Drive viewer ke direct image
+    // Ubah link Google Drive ke direct image link
     function convertDriveUrl(viewUrl) {
-      const match = viewUrl.match(/\/d\/([^/]+)\//);
-      return match ? `https://drive.google.com/uc?id=${match[1]}` : viewUrl;
+      const match = viewUrl.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+      return match ? `https://drive.google.com/uc?id=${match[1]}` : '';
     }
 
-    fetch(url)
+    fetch(SHEET_URL)
       .then(response => response.json())
       .then(data => {
         const rows = data.values;
@@ -39,23 +71,25 @@
           return item;
         });
 
-        let html = '';
+        const container = document.getElementById('katalog');
+        container.innerHTML = '';
+
         items.forEach(item => {
-          html += `
+          const imgSrc = convertDriveUrl(item.Gambar);
+          const card = `
             <div class="produk">
-              ${item.Gambar ? `<img src="${convertDriveUrl(item.Gambar)}" alt="${item.Nama}">` : ''}
+              ${imgSrc ? `<img src="${imgSrc}" alt="${item.Nama}">` : ''}
               <h3>${item.Nama}</h3>
-              <p>Size: ${item.Size}</p>
+              <p>Ukuran: ${item.Size}</p>
               <p>Harga: ${item.Harga}</p>
             </div>
           `;
+          container.innerHTML += card;
         });
-
-        document.getElementById('katalog').innerHTML = html;
       })
       .catch(error => {
+        document.getElementById('katalog').innerText = 'Gagal memuat data.';
         console.error('Error:', error);
-        document.getElementById('katalog').innerHTML = 'Gagal memuat data.';
       });
   </script>
 </body>
