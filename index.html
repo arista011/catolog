@@ -47,59 +47,53 @@
 <body>
   <h1>Katalog Produk</h1>
   <div class="container" id="katalog">Memuat data...</div>
+<script>
+  const API_KEY = 'AIzaSyARK_4viVwWztQS4pmi7_CKOk6Poszd3eg';
+  const SPREADSHEET_ID = '1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y';
+  const SHEET_NAME = 'Nama Barang';
+  const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
-  <script>
-    const API_KEY = 'AIzaSyARK_4viVwWztQS4pmi7_CKOk6Poszd3eg';
-    const SPREADSHEET_ID = '1XYfl7A3rkQf4Dck_u5ygj1EQDhBq8r2H9D9DwBa4D5Y';
-    const SHEET_NAME = 'Nama Barang';
-    const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
-    const DRIVE_API_URL = 'https://www.googleapis.com/drive/v3/files';
+  function extractFileId(driveUrl) {
+    const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  }
 
-    async function getDriveFileIdByName(fileName) {
-      const query = `name='${fileName}' and mimeType contains 'image/' and trashed = false`;
-      const url = `${DRIVE_API_URL}?q=${encodeURIComponent(query)}&fields=files(id,name)&key=${API_KEY}`;
-      const response = await fetch(url);
+  async function main() {
+    try {
+      const response = await fetch(SHEET_URL);
       const data = await response.json();
-      return data.files && data.files.length > 0 ? data.files[0].id : null;
-    }
+      const rows = data.values;
+      const headers = rows[0];
+      const items = rows.slice(1).map(row => {
+        let item = {};
+        headers.forEach((key, i) => item[key] = row[i] || '');
+        return item;
+      });
 
-    async function main() {
-      try {
-        const response = await fetch(SHEET_URL);
-        const data = await response.json();
-        const rows = data.values;
-        const headers = rows[0];
-        const items = rows.slice(1).map(row => {
-          let item = {};
-          headers.forEach((key, i) => item[key] = row[i] || '');
-          return item;
-        });
+      const container = document.getElementById('katalog');
+      container.innerHTML = '';
 
-        const container = document.getElementById('katalog');
-        container.innerHTML = '';
+      for (const item of items) {
+        const fileId = extractFileId(item.Gambar);
+        const imgSrc = fileId ? `https://drive.google.com/uc?id=${fileId}` : '';
 
-        for (const item of items) {
-          const fileName = item.Gambar.split('/').pop().replace('view?usp=drive_link', '').trim();
-          const fileId = await getDriveFileIdByName(fileName);
-          const imgSrc = fileId ? `https://drive.google.com/uc?id=${fileId}` : '';
-
-          const card = `
-            <div class="produk">
-              ${imgSrc ? `<img src="${imgSrc}" alt="${item.Nama}">` : ''}
-              <h3>${item.Nama}</h3>
-              <p>Ukuran: ${item.Size}</p>
-              <p>Harga: ${item.Harga}</p>
-            </div>
-          `;
-          container.innerHTML += card;
-        }
-      } catch (error) {
-        document.getElementById('katalog').innerText = 'Gagal memuat data.';
-        console.error('Error:', error);
+        const card = `
+          <div class="produk">
+            ${imgSrc ? `<img src="${imgSrc}" alt="${item.Nama}">` : '<p><i>Tidak ada gambar</i></p>'}
+            <h3>${item.Nama}</h3>
+            <p>Ukuran: ${item.Size}</p>
+            <p>Harga: ${item.Harga}</p>
+          </div>
+        `;
+        container.innerHTML += card;
       }
+    } catch (error) {
+      document.getElementById('katalog').innerText = 'Gagal memuat data.';
+      console.error('Error:', error);
     }
+  }
 
-    main();
-  </script>
+  main();
+</script>
 </body>
 </html>
