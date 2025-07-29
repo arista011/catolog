@@ -53,10 +53,24 @@
   const SHEET_NAME = 'Nama Barang';
   const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
-  function extractFileId(driveUrl) {
-    const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return match ? match[1] : null;
-  }
+  function extractFileId(url) {
+  if (!url) return null;
+  let match;
+
+  // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  match = url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+  if (match) return match[1];
+
+  // Format: https://drive.google.com/open?id=FILE_ID
+  match = url.match(/[?&]id=([a-zA-Z0-9_-]{25,})/);
+  if (match) return match[1];
+
+  // Format: https://drive.google.com/uc?id=FILE_ID
+  match = url.match(/uc\?id=([a-zA-Z0-9_-]{25,})/);
+  if (match) return match[1];
+
+  return null;
+}
 
   async function main() {
     try {
